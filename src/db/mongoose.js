@@ -5,4 +5,7 @@ const mongoose = require("mongoose");
 // 	useCreateIndex: true,
 // 	useFindAndModify: false,
 // });
-mongoose.connect(process.env.MONGODB_URL);
+mongoose
+	.connect(process.env.MONGODB_URL)
+	.then(() => {})
+	.catch((e) => console.log(e));
