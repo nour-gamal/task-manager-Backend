@@ -58,9 +58,14 @@ app.get("/getUserById", async (req, res) => {
 	}
 });
 
-app.patch("/updateUserName", async (req, res) => {
+app.patch("/updateUser", async (req, res) => {
 	const id = req.query.id;
-	const name = req.query.name;
+	updates = Object.keys(req.body);
+	const allowedUpdates = ["name", "age", "email", "password"];
+	const isValidOperation = updates.every((update) =>
+		allowedUpdates.includes(update)
+	);
+
 	if (!id) {
 		return res.status(400).send({
 			status: 400,
@@ -68,21 +73,17 @@ app.patch("/updateUserName", async (req, res) => {
 		});
 	}
 
-	if (!name) {
-		return res.status(400).send({
-			status: 400,
-			error: "Please provide a name !",
-		});
+	if (!isValidOperation) {
+		return res
+			.status(401)
+			.send({ status: 401, message: "invalid opperation !" });
 	}
 
 	try {
-		const user = await User.findByIdAndUpdate(
-			id,
-			{
-				name,
-			},
-			{ new: true, runValidators: true }
-		);
+		const user = await User.findByIdAndUpdate(id, req.body, {
+			new: true,
+			runValidators: true,
+		});
 		if (!user) {
 			return res.status(404).send({ status: 404, message: "User Not Found !" });
 		}
