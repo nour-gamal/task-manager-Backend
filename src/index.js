@@ -58,6 +58,43 @@ app.get("/getUserById", async (req, res) => {
 	}
 });
 
+app.patch("/updateUserName", async (req, res) => {
+	const id = req.query.id;
+	const name = req.query.name;
+	if (!id) {
+		return res.status(400).send({
+			status: 400,
+			error: "Please provide an id !",
+		});
+	}
+
+	if (!name) {
+		return res.status(400).send({
+			status: 400,
+			error: "Please provide a name !",
+		});
+	}
+
+	try {
+		const user = await User.findByIdAndUpdate(
+			id,
+			{
+				name,
+			},
+			{ new: true, runValidators: true }
+		);
+		if (!user) {
+			return res.status(404).send({ status: 404, message: "User Not Found !" });
+		}
+
+		res
+			.status(201)
+			.send({ status: 201, message: "updated Successfully !", data: user });
+	} catch (e) {
+		res.status(500).send({ status: 500, error: e });
+	}
+});
+
 app.post("/addTask", async (req, res) => {
 	const task = new Task(req.body);
 
