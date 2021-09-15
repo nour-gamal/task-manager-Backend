@@ -97,10 +97,15 @@ taskRouter.patch("/editTask", async (req, res) => {
 			.send({ status: 400, message: "Invalid Operation !" });
 	}
 	try {
-		const updatedTask = await Task.findByIdAndUpdate(id, req.body, {
-			new: true,
-			runValidators: true,
-		});
+		// const updatedTask = await Task.findByIdAndUpdate(id, req.body, {
+		// 	new: true,
+		// 	runValidators: true,
+		// });
+
+		const updatedTask = await Task.findById(id);
+		updates.forEach((update) => (updatedTask[update] = req.body[update]));
+		await updatedTask.save();
+
 		res.status(201).send({ status: 201, task: updatedTask });
 	} catch (e) {
 		res.status(401).send({ status: 401, error: e });
