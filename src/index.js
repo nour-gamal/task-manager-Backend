@@ -1,12 +1,14 @@
 const express = require("express");
-require("./db/mongoose");
+const cors = require("cors");
 const userRouter = require("./router/user");
 const taskRouter = require("./router/task");
 
-const app = express();
+require("./db/mongoose");
 
+const app = express();
 const port = process.env.PORT;
 
+app.use(cors());
 app.use(express.json());
 
 app.use(userRouter);
