@@ -1,9 +1,10 @@
 const express = require("express");
 const taskRouter = new express.Router();
+const auth = require("../middleware/auth");
 const Task = require("../models/Task");
 
-taskRouter.post("/addTask", async (req, res) => {
-	const task = new Task(req.body);
+taskRouter.post("/addTask", auth, async (req, res) => {
+	const task = new Task({ ...req.body, owner: req.user._id });
 
 	try {
 		const newTask = await task.save();
@@ -17,7 +18,7 @@ taskRouter.post("/addTask", async (req, res) => {
 	}
 });
 
-taskRouter.get("/getTaskById", async (req, res) => {
+taskRouter.get("/getTaskById", auth, async (req, res) => {
 	const id = req.query.id;
 	if (!id) {
 		return res.status(404).send({
@@ -27,8 +28,13 @@ taskRouter.get("/getTaskById", async (req, res) => {
 	}
 
 	try {
-		const task = await Task.findById(id);
-
+		const task = await Task.findOne({ _id: id, owner: req.user._id });
+		if (!task) {
+			return res.status(404).send({
+				status: 400,
+				message: "Task or User is wrong!",
+			});
+		}
 		res.status(200).send({ status: 200, data: task });
 	} catch (e) {
 		res.status(500).send({
@@ -38,20 +44,19 @@ taskRouter.get("/getTaskById", async (req, res) => {
 	}
 });
 
-taskRouter.get("/getAllTasks", (req, res) => {
-	Task.find({})
-		.then((Tasks) => {
-			res.status(200).send({
-				status: 200,
-				data: Tasks,
-			});
-		})
-		.catch((err) => {
-			res.status(401).send({
-				status: 401,
-				error: err,
-			});
+taskRouter.get("/getAllTasks", auth, async (req, res) => {
+	try {
+		const Tasks = await Task.find({ owner: req.user._id });
+		res.status(200).send({
+			status: 200,
+			data: Tasks,
 		});
+	} catch (err) {
+		res.status(401).send({
+			status: 401,
+			error: err,
+		});
+	}
 });
 
 taskRouter.get("/removeReturnUncompleteTasks", async (req, res) => {
